@@ -1,0 +1,9 @@
+@echo off
+echo Запуск track_updater...
+start "" python track_updater.py
+
+echo Ожидание 10 секунд перед запуском auto_push...
+timeout /t 10 /nobreak >nul
+
+echo Запуск auto_push...
+start "" python auto_push.py
