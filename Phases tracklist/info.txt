@@ -1,9 +1,0 @@
-> INIT: SIGNAL_AUDIO_LOG  
-> MODE: embedded compositions per phase  
-> RELEASE: weekly (Saturday 00:00 / GMT+7)  
-Each audio layer = part of the system  
-Not soundtrack. Not filler. Structural audio.
-
-↳ use tracklist viewer to scan past signals  
-↳ updates sync with phase transition protocol
-
