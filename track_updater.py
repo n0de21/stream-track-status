@@ -1,11 +1,13 @@
 import time
 import os
+import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
 URL = "https://systrum.net/"
 OUTPUT_FILE = "now_playing.txt"
+HISTORY_FILE = "history_log.txt"
 DELAY = 10  # seconds
 
 def setup_driver():
@@ -48,8 +50,24 @@ def main():
 
             if track and track != current and not track.startswith("[Error]"):
                 print(">>", track)
-                with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-                    f.write(track)
+
+            # update track
+            with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+                f.write(track)
+
+            # track + timestamp
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            log_entry = f"{track} | {timestamp}"
+
+            # check
+            if not os.path.exists(HISTORY_FILE):
+                with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+                    f.write(log_entry + "\n")
+            else:
+                with open(HISTORY_FILE, "r+", encoding="utf-8") as log:
+                    all_lines = log.read().splitlines()
+                    if not any(line.startswith(track) for line in all_lines):
+                        log.write(log_entry + "\n")
 
             time.sleep(DELAY)
     finally:

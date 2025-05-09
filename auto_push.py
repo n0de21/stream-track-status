@@ -2,7 +2,7 @@ import os
 import time
 from git import Repo
 
-REPO_PATH = r"C:\Users\letigre\Documents\GitHub\stream-track-status"
+REPO_PATH = r"C:\Users\user\Documents\GitHub\stream-track-status"
 FILENAME = "now_playing.txt"
 FULL_PATH = os.path.join(REPO_PATH, FILENAME)
 CHECK_DELAY = 30
@@ -25,7 +25,7 @@ def main():
                 push_update(REPO_PATH, FILENAME)
                 last_content = content
         except Exception as e:
-            pass  # можно логировать ошибки в файл
+            pass
 
         time.sleep(CHECK_DELAY)
 
