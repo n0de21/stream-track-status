@@ -6,11 +6,11 @@ from selenium.webdriver.common.by import By
 
 URL = "https://systrum.net/"
 OUTPUT_FILE = "now_playing.txt"
-DELAY = 10  # секунд
+DELAY = 10  # seconds
 
 def setup_driver():
     options = Options()
-    options.add_argument("--headless")  # оставляем визуальный режим
+    options.add_argument("--headless") 
     options.add_argument("--disable-gpu")
     options.add_argument("--log-level=3")
     return webdriver.Chrome(options=options)
@@ -28,11 +28,11 @@ def get_track(driver):
         title = marquees[1].text.strip()
 
         if not artist or not title:
-            return "[Ошибка] Пустой текст"
+            return "[Error] Empty"
 
         return f"{artist} {title}"
     except Exception as e:
-        return f"[Ошибка] {e}"
+        return f"[Error] {e}"
 
 def main():
     driver = setup_driver()
@@ -40,14 +40,13 @@ def main():
         while True:
             track = get_track(driver)
 
-            # читаем, что в файле
             try:
                 with open(OUTPUT_FILE, "r", encoding="utf-8", errors="ignore") as f:
                     current = f.read().strip()
             except FileNotFoundError:
                 current = ""
 
-            if track and track != current and not track.startswith("[Ошибка]"):
+            if track and track != current and not track.startswith("[Error]"):
                 print(">>", track)
                 with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
                     f.write(track)
