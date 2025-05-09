@@ -1,9 +1,0 @@
-@echo off
-echo Launching track_updater...
-start "" python track_updater.py
-
-echo 10 secs before auto_push...
-timeout /t 10 /nobreak >nul
-
-echo Launching auto_push...
-start "" python auto_push.py
