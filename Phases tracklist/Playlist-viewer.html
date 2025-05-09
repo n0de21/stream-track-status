@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Phase Tracklist Viewer</title>
+    <style>
+      body {
+        background: #0a0a0a;
+        color: #fff;
+        font-family: "Terminal Grotesque", sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .wrapper {
+        width: 600px;
+        text-align: left;
+      }
+      h1 {
+        letter-spacing: 4px;
+        margin-bottom: 20px;
+        text-align: left;
+        letter-spacing: -0.2px;
+      }
+
+      a {
+        color: #fff;
+        text-decoration: underline;
+        text-decoration-color: #fff;
+      }
+
+      .button-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-start;
+        margin-bottom: 20px;
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeIn 1s ease-out forwards;
+      }
+
+      @keyframes fadeIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      button {
+        background: transparent;
+        font-family: "Terminal Grotesque", sans-serif;
+        color: #fff;
+        padding: 8px 16px;
+        cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.4s ease, background 0.3s ease;
+      }
+      button.active {
+        background: #EBCC00;
+        color: black;
+        opacity: 1;
+      }
+      button:hover {
+        outline: 1px solid #EBCC00;
+      }
+      pre {
+        background: #111;
+        padding: 20px;
+        text-align: left;
+        font-size: 14px;
+      }
+
+      #content {
+        max-width: 100%;
+        height: 12em;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-size: 18px;
+        background-color: #111;
+        border: 1px solid #222;
+        padding: 1em;
+        margin-top: 2em;
+        font-family: "Terminal Grotesque", sans-serif;
+      }
+
+      pre::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      pre::-webkit-scrollbar-track {
+        background: #111;
+      }
+
+      pre::-webkit-scrollbar-thumb {
+        background-color: #444;
+        border-radius: 4px;
+      }
+
+      pre::-webkit-scrollbar-thumb:hover {
+        background-color: #666;
+      }
+
+      /* Firefox */
+      pre {
+        scrollbar-width: thin;
+        scrollbar-color: #444 #111;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <h1>// PHASE TRACKLIST VIEWER</h1>
+      <div class="button-container" id="buttons"></div>
+      <pre id="content"></pre>
+      <a href="https://www.twitch.tv/n0de21">BACK TO STREAM</a>
+    </div>
+
+    <script>
+      const phaseCount = 21;
+      const buttons = [];
+
+      async function loadInitialInfo() {
+        const content = await loadFile("info.txt");
+        document.getElementById("content").textContent =
+          content || "No info.txt found.";
+      }
+
+      async function checkAndCreateButtons() {
+        const container = document.getElementById("buttons");
+
+        // INFO Button
+        const mainButton = document.createElement("button");
+        mainButton.innerText = "INFO";
+        mainButton.classList.add("active");
+        mainButton.onclick = async () => {
+          clearActive();
+          mainButton.classList.add("active");
+          const content = await loadFile("info.txt");
+          document.getElementById("content").textContent =
+            content || "No info.txt found.";
+        };
+        container.appendChild(mainButton);
+
+        // PHASE Buttons
+        for (let i = 1; i <= phaseCount; i++) {
+          const base = `PHASE${i}`;
+          const btn = document.createElement("button");
+          btn.innerText = base;
+          btn.disabled = true;
+          btn.style.opacity = 0.3;
+          buttons.push(btn);
+          container.appendChild(btn);
+
+          try {
+            const filename = await findMatchingFile(base);
+            if (filename) {
+              btn.innerText = filename.replace(".txt", "");
+              btn.disabled = false;
+              btn.style.opacity = 1;
+              btn.onclick = async () => {
+                clearActive();
+                btn.classList.add("active");
+                const content = await loadFile(filename);
+                document.getElementById("content").textContent =
+                  content || "File not found.";
+              };
+            }
+          } catch (err) {
+            console.warn(`Phase ${i} file not found`);
+          }
+        }
+      }
+
+      async function findMatchingFile(base) {
+        const suffixes = [
+          "_SYNTH",
+          "_UPLINK",
+          "_INITIATE",
+        ];
+        for (let suffix of suffixes) {
+          const filename = `${base}${suffix}.txt`;
+          try {
+            const res = await fetch(filename, { method: "HEAD" });
+            if (res.ok) return filename;
+          } catch {}
+        }
+        return null;
+      }
+
+      async function loadFile(file) {
+        try {
+          const res = await fetch(file);
+          return res.ok ? await res.text() : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function clearActive() {
+        document
+          .querySelectorAll("button")
+          .forEach((b) => b.classList.remove("active"));
+      }
+
+      loadInitialInfo();
+      checkAndCreateButtons();
+    </script>
+  </body>
+</html>
