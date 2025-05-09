@@ -38,9 +38,8 @@
         gap: 10px;
         justify-content: flex-start;
         margin-bottom: 20px;
-        opacity: 0;
+        opacity: 1;
         transform: translateY(10px);
-        animation: fadeIn 1s ease-out forwards;
       }
 
       @keyframes fadeIn {
@@ -120,93 +119,55 @@
     </div>
 
     <script>
-      const phaseCount = 21;
-      const buttons = [];
-
-      async function loadInitialInfo() {
-        const content = await loadFile("info.txt");
-        document.getElementById("content").textContent =
-          content || "No info.txt found.";
-      }
-
-      async function checkAndCreateButtons() {
-        const container = document.getElementById("buttons");
-
-        // INFO Button
-        const mainButton = document.createElement("button");
-        mainButton.innerText = "INFO";
-        mainButton.classList.add("active");
-        mainButton.onclick = async () => {
-          clearActive();
-          mainButton.classList.add("active");
-          const content = await loadFile("info.txt");
-          document.getElementById("content").textContent =
-            content || "No info.txt found.";
-        };
-        container.appendChild(mainButton);
-
-        // PHASE Buttons
-        for (let i = 1; i <= phaseCount; i++) {
-          const base = `PHASE${i}`;
-          const btn = document.createElement("button");
-          btn.innerText = base;
-          btn.disabled = true;
-          btn.style.opacity = 0.3;
-          buttons.push(btn);
-          container.appendChild(btn);
-
-          try {
-            const filename = await findMatchingFile(base);
-            if (filename) {
-              btn.innerText = filename.replace(".txt", "");
-              btn.disabled = false;
-              btn.style.opacity = 1;
-              btn.onclick = async () => {
-                clearActive();
-                btn.classList.add("active");
-                const content = await loadFile(filename);
-                document.getElementById("content").textContent =
-                  content || "File not found.";
-              };
-            }
-          } catch (err) {
-            console.warn(`Phase ${i} file not found`);
-          }
-        }
-      }
-
-      async function findMatchingFile(base) {
-        const suffixes = [
-          "_SYNTH",
-          "_UPLINK",
-          "_INITIATE",
-        ];
-        for (let suffix of suffixes) {
-          const filename = `${base}${suffix}.txt`;
-          try {
-            const res = await fetch(filename, { method: "HEAD" });
-            if (res.ok) return filename;
-          } catch {}
-        }
-        return null;
-      }
-
-      async function loadFile(file) {
-        try {
-          const res = await fetch(file);
-          return res.ok ? await res.text() : null;
-        } catch {
-          return null;
-        }
-      }
+      const phaseData = [
+        { label: "INFO", file: "info.txt", active: true },
+        { label: "PHASE1_SYNTH", file: "PHASE1_SYNTH.txt", active: false },
+        { label: "PHASE2_UPLINK", file: "PHASE2_UPLINK.txt", active: false },
+        { label: "PHASE3_INITIATE", file: "PHASE3_INITIATE.txt", active: false }
+      ];
 
       function clearActive() {
-        document
-          .querySelectorAll("button")
-          .forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
       }
 
-      loadInitialInfo();
+      function checkAndCreateButtons() {
+        const container = document.getElementById("buttons");
+        const content = document.getElementById("content");
+
+        // Manually configured buttons
+        phaseData.forEach(({ label, file, active }) => {
+          const btn = document.createElement("button");
+          btn.innerText = label;
+          if (active) btn.classList.add("active");
+
+          btn.onclick = () => {
+            clearActive();
+            btn.classList.add("active");
+            fetch(file)
+              .then(res => res.text())
+              .then(text => content.innerText = text)
+              .catch(() => content.innerText = `[!] Failed to load ${file}`);
+          };
+
+          container.appendChild(btn);
+        });
+
+        // Inactive placeholders
+        for (let i = 3; i < 21; i++) {
+          const phLabel = `PHASE${i + 1}`;
+          const btn = document.createElement("button");
+          btn.innerText = phLabel;
+          btn.style.opacity = "0.3";
+          btn.disabled = true;
+          container.appendChild(btn);
+        }
+
+        fetch("info.txt")
+        .then(res => res.text())
+        .then(text => content.innerText = text)
+        .catch(() => content.innerText = "[!] Failed to load info.txt");
+      }
+
       checkAndCreateButtons();
     </script>
   </body>
